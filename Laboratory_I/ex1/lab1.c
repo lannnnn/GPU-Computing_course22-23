@@ -63,6 +63,46 @@
 #define SOLUTION_STACKMAT_2 { }
 #endif
 
+void calc_c1(int* a, int* b, int* c) {
+	int* p = c;
+	for(int i = 0; i < LEN; i++) {
+		*p = a[i] + b[i];
+		p++;
+	}
+}
+
+int* calc_c2(int* a, int* b) {
+	int* c = (int*) malloc(LEN*sizeof(int));
+	int* p = c;
+	for(int i = 0; i < LEN; i++) {
+                *p = a[i] + b[i];
+                p++;
+        }
+	return c;
+}
+
+void calc_C1(int A[][M], int B[][M], int* C) {
+	int* p = C;
+	for(int i=0; i<N; i++){
+		for(int j=0; j<M; j++) {
+			*p = A[i][j] + B[i][j];
+			p++;	
+		}
+	}
+}
+
+int* calc_C2(int A[][M], int B[][M]) {
+	int* C = (int*) malloc(N*M*sizeof(int));
+	int* p = C;
+        for(int i=0; i<N; i++){
+                for(int j=0; j<M; j++) {
+                        *p = A[i][j] + B[i][j];
+                        p++;
+                }
+        }
+	return C;
+}
+	
 int main(void) {
     // ---------- for timing ----------
     float CPU_times[NPROBS];
@@ -82,6 +122,17 @@ int main(void) {
      * Then compute the vector c = a + b.
      */
 
+    int a[LEN];
+    int b[LEN];
+    int c[LEN]; // stack allocation of ex1
+    int* c1;    // heap allocation of ex2
+    int* c2;    // heap allocation of ex3
+    for(int i = 0; i < LEN; i++) {
+        a[i] = i;
+        b[i] = i * 100;
+    }
+ 
+
 #ifdef RESULTS
         SOLUTION_STACKVEC_1
         PRINT_RESULT_VECTOR(c, "c")
@@ -89,7 +140,9 @@ int main(void) {
         /* |========================================| */
         /* |           Put here your code           | */
         /* |========================================| */
-
+	for(int i=0; i<LEN; i++)
+		c[i] = a[i] + b[i];
+        PRINT_RESULT_VECTOR(c, "c")
 
 #endif
     // ---------------------- Heap vectors 1 -----------------------
@@ -103,7 +156,9 @@ int main(void) {
         /* |========================================| */
         /* |           Put here your code           | */
         /* |========================================| */
-
+	c1 = (int*) malloc(LEN*sizeof(int));
+    	calc_c1(a, b, c1);
+	PRINT_RESULT_VECTOR(c1, "c1")
 
 #endif
     // ---------------------- Heap vectors 2 -----------------------
@@ -117,7 +172,8 @@ int main(void) {
         /* |========================================| */
         /* |           Put here your code           | */
         /* |========================================| */
-
+	c2 = calc_c2(a, b);
+	PRINT_RESULT_VECTOR(c2, "c2")
 
 #endif
     // ---------------------- Stack vectors 2 ----------------------
@@ -130,7 +186,7 @@ int main(void) {
         /* |========================================| */
         /* |           Put here your code           | */
         /* |========================================| */
-
+        // NOT POSSIBLE
 
 #endif
 
@@ -145,6 +201,17 @@ int main(void) {
      * matrices?
      */
     // --------------------- Stack matrices ----------------------
+	int A[N][M];
+	int B[N][M];
+	for(int i=0; i<N; i++) {
+		for(int j=0; j<M; j++) {
+			A[i][j] = i+j;
+			B[i][j] = (i+j) * 100;
+		}
+	}
+	int C[N][M];
+	int *C1;
+	int *C2;
 #ifdef RESULTS
         SOLUTION_STACKMAT_1
         PRINT_RESULT_MATRIX(((int*)C), "C")
@@ -152,7 +219,12 @@ int main(void) {
         /* |========================================| */
         /* |           Put here your code           | */
         /* |========================================| */
-
+	for(int i=0; i<N; i++) {
+                for(int j=0; j<M; j++) {
+                        C[i][j] = A[i][j] + B[i][j];
+                }
+        }
+	PRINT_RESULT_MATRIX(((int*)C), "C")
 
 #endif
 
@@ -164,7 +236,9 @@ int main(void) {
         /* |========================================| */
         /* |           Put here your code           | */
         /* |========================================| */
-
+	C1 = (int*)malloc(M*N*sizeof(int));
+	calc_C1(A, B, C1);
+	PRINT_RESULT_MATRIX(C1, "C1")
 
 #endif
 
@@ -176,7 +250,8 @@ int main(void) {
         /* |========================================| */
         /* |           Put here your code           | */
         /* |========================================| */
-
+	C2 = calc_C2(A, B);
+	PRINT_RESULT_MATRIX(C2, "C2")
 
 #endif
 

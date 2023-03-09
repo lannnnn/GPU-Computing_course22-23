@@ -18,6 +18,22 @@
 // #endif
 // ------------------------------------------------------------------------
 
+double mu_fn(dtype* data, int len) {
+	dtype sum = 0;
+	for(int i=0; i<len; i++) {
+		sum += data[i];
+	}
+	return sum / len;
+}
+
+double sigma_fn(dtype* data, double mu, int len) {
+	double sigma = 0.0;
+	for(int i=0; i<len; i++) {
+		sigma += pow((data[i]-mu),2); 
+	}
+	return sigma / len;
+}
+
 int main(int argc, char *argv[]) {
 
     if (argc < 2) {
@@ -53,8 +69,28 @@ int main(int argc, char *argv[]) {
         /* |========================================| */
         /* |           Put here your code           | */
         /* |========================================| */
+	time_t seconds;
+    	seconds = time(NULL);
+	len = 1<<n;
+	a = (dtype*) malloc(len*sizeof(dtype));
+        b = (dtype*) malloc(len*sizeof(dtype));
+	if(sizeof(dtype) == 4) {
+		for(int i=0; i<len; i++) {
+			a[i] = rand()/(1<<11);
+			b[i] = rand()/(1<<11);
+		}
+	}else {
+		for(int i=0; i<len; i++) {
+                        a[i] = (double)rand()/((double)RAND_MAX);
+                        b[i] = (double)rand()/((double)RAND_MAX);
+		}
+	}
 
-
+	c = (dtype*) malloc(len*sizeof(dtype));
+	for(int i=0; i<len; i++) {
+		c[i] = a[i] + b[i];
+	}
+	seconds = seconds - time(NULL);
 
 #endif
 
@@ -77,6 +113,12 @@ int main(int argc, char *argv[]) {
         /* |========================================| */
         /* |           Put here your code           | */
         /* |========================================| */
+     mu_a = mu_fn(a, len);
+     mu_b = mu_fn(b, len);
+     mu_c = mu_fn(c, len);
+     sigma_a = sigma_fn(a, mu_a, len);
+     sigma_b = sigma_fn(b, mu_b, len);
+     sigma_c = sigma_fn(c, mu_c, len);
 
 #endif
 
