@@ -24,7 +24,7 @@
 #define dtype float
 
 // #include "../solutions/lab2_sol.cu"
-#define RUN_SOLUTIONS
+//#define RUN_SOLUTIONS
 
 #define BLK_SIZE 32
 #define GRD_SIZE 2
@@ -55,11 +55,24 @@ void example_kernel(int n, dtype *a, dtype* b, dtype* c)
             /* |========================================| */
             /* |         Put here your kernels          | */
             /* |========================================| */
+__global__ void GPU_layout1(int n, dtype *a, dtype* b, dtype* c) {
+  int k = blockDim.x * gridDim.x;
+  int idx = threadIdx.x + blockIdx.x * blockDim.x;
+  for(; idx< (1<<n); idx+= k ) {
+    if(idx < (1<<n))
+      c[idx] = a[idx] + b[idx];
+  }
+}      
 
-
-
-
-
+__global__ void GPU_layout2(int n, dtype *a, dtype* b, dtype* c) {
+  int k = blockDim.x * gridDim.x;
+  int count_per_thread = (1<<n) % k == 0 ? (1<<n) / k : (1<<n) / k + 1;
+  int idx = (threadIdx.x + blockIdx.x * blockDim.x) * count_per_thread;
+  for(int cnt = 0; cnt< count_per_thread; cnt++ ) {
+    if((idx+cnt) < (1<<n))
+      c[idx+cnt] = a[idx+cnt] + b[idx+cnt];
+  }
+}   
 
 #endif
 
@@ -88,8 +101,25 @@ int main(int argc, char *argv[]) {
             /* |========================================| */
             /* |           Put here your code           | */
             /* |========================================| */
+  int deviceCount = 0;
+  cudaError_t error_id = cudaGetDeviceCount(&deviceCount);
+  int dev, driverVersion = 0, runtimeVersion = 0;
+  printf("deviceCount = %d\n", deviceCount);
+  for (dev = 0; dev < deviceCount; ++dev) {
+    cudaSetDevice(dev);
+    cudaDeviceProp deviceProp;
+    cudaGetDeviceProperties(&deviceProp, dev);
 
+    printf("\nDevice %d: \"%s\"\n", dev, deviceProp.name);
 
+    printf("  Memory Clock rate:                             %.0f Mhz\n",
+           deviceProp.memoryClockRate * 1e-3f);
+    printf("  Number of operations done in one second: 2 * Mem_Clk_Rate = %.0f M\n",
+            2 * deviceProp.memoryClockRate * 1e-3f);
+    printf("  Memory Bus Width:                              %d-bit\n",
+    deviceProp.memoryBusWidth);
+
+  }
 
 
 #endif
@@ -193,7 +223,8 @@ int main(int argc, char *argv[]) {
   errors[0] = 0.0;
   Times[0] = TIMER_ELAPSED;
 
-
+  int block_size = 16;
+  int thread_size = 32;
 
   // ================== GPU computation with Layout 1 ===================
 
@@ -213,19 +244,20 @@ int main(int argc, char *argv[]) {
             /* |========================================| */
 
   // ------------ copy date from host to device --------------
-
-
+  cudaMemcpy(dev_a, a, sizeof(dtype)*len, cudaMemcpyHostToDevice);
+  cudaMemcpy(dev_b, b, sizeof(dtype)*len, cudaMemcpyHostToDevice);
 
   // ------------ computation solution with Layout 1 -----------
   TIMER_START;
 
+  GPU_layout1<<<block_size,thread_size>>>(n, dev_a, dev_b, dev_c);
 
   checkCudaErrors( cudaDeviceSynchronize() );
   TIMER_STOP;
   Times[1] += TIMER_ELAPSED;
   // ----------- copy results from device to host ------------
 
-
+  cudaMemcpy(GPU_c, dev_c, sizeof(dtype)*len, cudaMemcpyDeviceToHost);
 
 #endif
 
@@ -250,19 +282,19 @@ int main(int argc, char *argv[]) {
 
   // ---------------- Reset the memory in dev_c ----------------
 
-
+  cudaMemset(dev_c, 0, sizeof(dtype)*len);
 
   // ------------ computation solution with Layout 2 -----------
   TIMER_START;
 
-
+  GPU_layout2<<<block_size,thread_size>>>(n, dev_a, dev_b, dev_c);
 
   checkCudaErrors( cudaDeviceSynchronize() );
   TIMER_STOP;
   Times[2] += TIMER_ELAPSED;
   // ------------ copy results from device to host -------------
 
-
+  cudaMemcpy(GPU_c, dev_c, sizeof(dtype)*len, cudaMemcpyDeviceToHost);
 
 #endif
 

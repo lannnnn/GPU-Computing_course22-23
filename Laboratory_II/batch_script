@@ -1,0 +1,14 @@
+#!/bin/bash
+#SBATCH --partition=edu5
+#SBATCH --tasks=1
+#SBATCH --cpus-per-task=1
+#SBATCH --nodes=1
+#SBATCH --gres=gpu:1
+
+#SBATCH --job-name=lab1_ex2
+#SBATCH --output=outputs/R-%x.%j.out
+#SBATCH --error=outputs/R-%x.%j.err
+
+module load cuda
+
+srun ./bin/lab2_ex1 $1

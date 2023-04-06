@@ -1,0 +1,17 @@
+======================================= Device properties ========================================
+deviceCount = 1
+
+Device 0: "NVIDIA A30 MIG 1g.6gb"
+  Memory Clock rate:                             1215 Mhz
+  Number of operations done in one second: 2 * Mem_Clk_Rate = 2430 M
+  Memory Bus Width:                              768-bit
+====================================== Problem computations ======================================
+argv[1] = 16
+n = 16 --> len = 2^(n) = 65536
+dtype = float
+================================== Times and results of my code ==================================
+Solution type	error	time
+         CPU:	0.000	0.000
+GPU Layout 1:	0.000	0.010
+GPU Layout 2:	0.000	0.069
+
