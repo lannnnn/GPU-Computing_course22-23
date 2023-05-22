@@ -58,18 +58,24 @@ void example_kernel(int n, dtype *a, dtype* b, dtype* c)
 __global__ void GPU_layout1(int n, dtype *a, dtype* b, dtype* c) {
   int k = blockDim.x * gridDim.x;
   int idx = threadIdx.x + blockIdx.x * blockDim.x;
-  for(; idx< (1<<n); idx+= k ) {
-    if(idx < (1<<n))
+  int len = pow(2,n);
+  //if(threadIdx.x == 0) 
+    //printf("block %d runs on sm %d\n", blockIdx.x, get_smid());
+  for(; idx< len; idx+= k ) {
+    if(idx < len)
       c[idx] = a[idx] + b[idx];
   }
 }      
 
 __global__ void GPU_layout2(int n, dtype *a, dtype* b, dtype* c) {
   int k = blockDim.x * gridDim.x;
-  int count_per_thread = (1<<n) % k == 0 ? (1<<n) / k : (1<<n) / k + 1;
+  int len = pow(2,n);
+  int count_per_thread = len % k == 0 ? len / k : len / k + 1;
   int idx = (threadIdx.x + blockIdx.x * blockDim.x) * count_per_thread;
+  //if(threadIdx.x == 0)
+    //printf("block %d runs on sm %d\n", blockIdx.x, get_smid());
   for(int cnt = 0; cnt< count_per_thread; cnt++ ) {
-    if((idx+cnt) < (1<<n))
+    if((idx+cnt) < len)
       c[idx+cnt] = a[idx+cnt] + b[idx+cnt];
   }
 }   
@@ -135,7 +141,7 @@ int main(int argc, char *argv[]) {
 
   // ---------------- set-up the problem size -------------------
 
-  int n = atoi(argv[1]), len = (1<<n), i;
+  int n = atoi(argv[1]), len = pow(2,n), i;
 
   printf("n = %d --> len = 2^(n) = %d\n", n, len);
   printf("dtype = %s\n", XSTR(dtype));
@@ -222,9 +228,8 @@ int main(int argc, char *argv[]) {
   TIMER_STOP;
   errors[0] = 0.0;
   Times[0] = TIMER_ELAPSED;
-
-  int block_size = 16;
-  int thread_size = 32;
+  int block_size = 8; 
+  int thread_size = 128;
 
   // ================== GPU computation with Layout 1 ===================
 
